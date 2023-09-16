@@ -13,6 +13,8 @@ resource "aws_ecr_repository" "acia-repo" {
 # VPC
 resource "aws_vpc" "acia_vpc" {
   cidr_block = "10.0.0.0/16"
+  enable_dns_support   = true
+  enable_dns_hostnames = true
   tags = {
     Name = "ACIA VPC"
   }
@@ -21,6 +23,7 @@ resource "aws_vpc" "acia_vpc" {
 resource "aws_subnet" "acia_subnet" {
   vpc_id     = aws_vpc.acia_vpc.id
   cidr_block = "10.0.1.0/24"
+  map_public_ip_on_launch = true
   tags = {
     Name = "ACIA Subnet"
   }
@@ -219,8 +222,8 @@ resource "aws_ecs_task_definition" "ecs_task" {
 }
 
 resource "aws_ecs_service" "my_service" {
-  name            = "acia-ecs-service"
-  cluster         = "acia-ecs-cluster"
+  name            = "acia-ecs-task"
+  cluster         = aws_ecs_cluster.my_cluster.id
   task_definition = aws_ecs_task_definition.ecs_task.arn
   launch_type     = "EC2"
   desired_count   = 1
