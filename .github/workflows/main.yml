@@ -121,4 +121,4 @@ jobs:
       # On push to "main", build or change infrastructure according to Terraform configuration files
       # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
     - name: Terraform Apply
-      run: terraform apply -auto-approve -input=false
+      run: terraform apply -var="postgres_db=${{ secrets.POSTGRES_DB }}" -var="postgres_user=${{ secrets.POSTGRES_USER }}" -var="postgres_password=${{ secrets.POSTGRES_PASSWORD }}" -var="postgres_host=${{ secrets.POSTGRES_HOST }}" -var="user_ialab_password=${{ secrets.USER_IALAB_PASSWORD }}" -auto-approve -input=false
