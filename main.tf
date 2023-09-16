@@ -1,5 +1,5 @@
 # ECR
-resource "aws_ecr_repository" "acia-repo" {
+resource "aws_ecr_repository" "aciarepo" {
   name                 = "ACIAPostgresDatabase"
   image_tag_mutability = "MUTABLE"
   
@@ -172,7 +172,7 @@ resource "aws_ecs_task_definition" "ecs_task" {
   container_definitions = jsonencode([
     {
       name  = "my-app-container"
-      image = "${aws_ecr_repository.acia-repo.repository_url}:latest"
+      image = "${aws_ecr_repository.aciarepo.repository_url}:latest"
       cpu   = 256
       memory = 512
       logConfiguration = {
