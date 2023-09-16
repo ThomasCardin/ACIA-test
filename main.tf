@@ -1,3 +1,5 @@
+
+
 # ECR
 resource "aws_ecr_repository" "acia-repo" {
   name                 = "aciapostgresdatabase"
@@ -183,6 +185,34 @@ resource "aws_ecs_task_definition" "ecs_task" {
           "awslogs-stream-prefix" = "ecs"
         }
       }
+      portMappings = [
+        {
+          containerPort = 5432
+          hostPort      = 5432
+        }
+      ]
+      environment = [
+        {
+            name  = "USER_IALAB_PASSWORD"
+            value = var.user_ialab_password
+        },
+        {
+            name  = "POSTGRES_PASSWORD"
+            value = var.postgres_password
+        },
+        {
+            name  = "POSTGRES_USER"
+            value = var.postgres_user
+        },
+        {
+            name  = "POSTGRES_HOST"
+            value = var.postgres_host
+        },
+        {
+            name  = "POSTGRES_DB"
+            value = var.postgres_db
+        },
+      ]
     }
   ])
 }

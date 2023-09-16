@@ -115,7 +115,7 @@ jobs:
     # Generates an execution plan for Terraform
     - name: Terraform Plan
       id: plan
-      run: terraform plan -no-color
+      run: terraform plan -var="postgres_db=${{ secrets.POSTGRES_DB }}" -var="postgres_user=${{ secrets.POSTGRES_USER }}" -var="postgres_password=${{ secrets.POSTGRES_PASSWORD }}" -var="postgres_host=${{ secrets.POSTGRES_HOST }}" -var="user_ialab_password=${{ secrets.USER_IALAB_PASSWORD }}" -no-color
       continue-on-error: false
     
       # On push to "main", build or change infrastructure according to Terraform configuration files
