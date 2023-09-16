@@ -242,11 +242,7 @@ resource "aws_instance" "ecs_instance" {
   subnet_id         = aws_subnet.acia_subnet.id 
   iam_instance_profile   = aws_iam_instance_profile.ecs_instance_profile.name
 
-  user_data = <<-EOF
-              #!/bin/bash
-              echo ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config
-              EOF
-  
+  user_data = "#!/bin/bash\necho ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config"
   tags = {
     Name = "ECS Instance"
   }
