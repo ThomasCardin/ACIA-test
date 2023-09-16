@@ -1,6 +1,6 @@
 # ECR
 resource "aws_ecr_repository" "acia-repo" {
-  name                 = "ACIA-db"
+  name                 = "ACIAPostgresDatabase"
   image_tag_mutability = "MUTABLE"
   
   image_scanning_configuration {
