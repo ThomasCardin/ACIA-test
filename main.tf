@@ -98,6 +98,36 @@ resource "aws_iam_role" "ecs_execution_role" {
   })
 }
 
+# IAM ecs profile
+resource "aws_iam_instance_profile" "ecs_instance_profile" {
+  name = "ecs_instance_profile"
+  role = aws_iam_role.ecs_instance_role.name
+}
+
+resource "aws_iam_role" "ecs_instance_role" {
+  name = "ecs_instance_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = {
+          Service = "ec2.amazonaws.com"
+        },
+        Effect = "Allow",
+        Sid    = ""
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_instance_ecs_service" {
+  role       = aws_iam_role.ecs_instance_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
+}
+
+
 # IAM Policies
 resource "aws_iam_policy" "ecs_cloudwatch_logs" {
   name        = "ECSCloudWatchLogs"
@@ -200,14 +230,14 @@ resource "aws_ecs_service" "my_service" {
   }
 }
 
-
 # EC2 instance
 resource "aws_instance" "ecs_instance" {
-  ami           = "ami-042f39687f93b4afb" # ca-central-1 (64bits x86)
+  ami           = "ami-0034d1b24736be0bc" # ca-central-1 (64bits x86)
   instance_type = "t2.micro" 
 
   vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
   subnet_id         = aws_subnet.acia_subnet.id 
+  iam_instance_profile   = aws_iam_instance_profile.ecs_instance_profile.name
 
   user_data = <<-EOF
               #!/bin/bash
