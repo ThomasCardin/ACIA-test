@@ -10,56 +10,6 @@ resource "aws_ecr_repository" "acia-repo" {
   }
 }
 
-# IAM user
-resource "aws_iam_role" "ecs_execution_role" {
-  name = "ecs_iam_execution_role"
-
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = "sts:AssumeRole",
-        Principal = {
-          Service = "ecs-tasks.amazonaws.com"
-        },
-        Effect = "Allow",
-        Sid    = ""
-      }
-    ]
-  })
-}
-
-# IAM Policies
-resource "aws_iam_policy" "ecs_cloudwatch_logs" {
-  name        = "ECSCloudWatchLogs"
-  description = "Allow ECS tasks to write logs to CloudWatch"
-
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Action = [
-          "logs:CreateLogStream",
-          "logs:PutLogEvents",
-          "logs:DescribeLogStreams"
-        ],
-        Effect   = "Allow",
-        Resource = aws_cloudwatch_log_group.ecs_logs.arn
-      }
-    ]
-  })
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_execution_ecr_access" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_execution_cloudwatch_logs_access" {
-  role       = aws_iam_role.ecs_execution_role.name
-  policy_arn = aws_iam_policy.ecs_cloudwatch_logs.arn
-}
-
 # VPC
 resource "aws_vpc" "acia_vpc" {
   cidr_block = "10.0.0.0/16"
@@ -122,45 +72,66 @@ resource "aws_security_group" "ecs_instance_sg" {
   }
 }
 
-# EC2 instance
-resource "aws_instance" "ecs_instance" {
-  ami           = "ami-042f39687f93b4afb" # ca-central-1 (64bits x86)
-  instance_type = "t2.micro" 
-
-  vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
-  subnet_id         = aws_subnet.acia_subnet.id 
-
-  user_data = <<-EOF
-              #!/bin/bash
-              echo ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config
-              EOF
-  
-  tags = {
-    Name = "ECS Instance"
-  }
-}
-
 # Cloudwatch
 resource "aws_cloudwatch_log_group" "ecs_logs" {
   name = "ecs/my-app-logs"
   retention_in_days = 14
 }
 
+
+# IAM user
+resource "aws_iam_role" "ecs_execution_role" {
+  name = "ecs_iam_execution_role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        },
+        Effect = "Allow",
+        Sid    = ""
+      }
+    ]
+  })
+}
+
+# IAM Policies
+resource "aws_iam_policy" "ecs_cloudwatch_logs" {
+  name        = "ECSCloudWatchLogs"
+  description = "Allow ECS tasks to write logs to CloudWatch"
+
+  policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = [
+          "logs:CreateLogStream",
+          "logs:PutLogEvents",
+          "logs:DescribeLogStreams"
+        ],
+        Effect   = "Allow",
+        Resource = aws_cloudwatch_log_group.ecs_logs.arn
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_ecr_access" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_execution_cloudwatch_logs_access" {
+  role       = aws_iam_role.ecs_execution_role.name
+  policy_arn = aws_iam_policy.ecs_cloudwatch_logs.arn
+}
+
 # ECS service
 resource "aws_ecs_cluster" "my_cluster" {
   name = "acia-ecs-cluster"
-}
-
-resource "aws_ecs_service" "my_service" {
-  name            = "acia-ecs-service"
-  cluster         = "acia-ecs-cluster"
-  task_definition = aws_ecs_task_definition.ecs_task.arn
-  launch_type     = "EC2"
-  desired_count   = 1
-
-  deployment_controller {
-    type = "ECS"
-  }
 }
 
 resource "aws_ecs_task_definition" "ecs_task" {
@@ -215,6 +186,37 @@ resource "aws_ecs_task_definition" "ecs_task" {
       ]
     }
   ])
+}
+
+resource "aws_ecs_service" "my_service" {
+  name            = "acia-ecs-service"
+  cluster         = "acia-ecs-cluster"
+  task_definition = aws_ecs_task_definition.ecs_task.arn
+  launch_type     = "EC2"
+  desired_count   = 1
+
+  deployment_controller {
+    type = "ECS"
+  }
+}
+
+
+# EC2 instance
+resource "aws_instance" "ecs_instance" {
+  ami           = "ami-042f39687f93b4afb" # ca-central-1 (64bits x86)
+  instance_type = "t2.micro" 
+
+  vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
+  subnet_id         = aws_subnet.acia_subnet.id 
+
+  user_data = <<-EOF
+              #!/bin/bash
+              echo ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config
+              EOF
+  
+  tags = {
+    Name = "ECS Instance"
+  }
 }
 
 # Output the IP address of the EC2 instance
