@@ -125,7 +125,6 @@ resource "aws_instance" "ecs_instance" {
   ami           = "ami-042f39687f93b4afb" # ca-central-1 (64bits x86)
   instance_type = "t2.micro" 
 
-  key_name          = aws_key_pair.deployer.key_name
   vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
   subnet_id         = aws_subnet.acia_subnet.id 
 
