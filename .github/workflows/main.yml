@@ -48,6 +48,7 @@ on:
   push:
     branches:
       - main
+      - after-hours
 
 permissions:
   contents: read

@@ -52,13 +52,12 @@ resource "aws_security_group" "ecs_instance_sg" {
   description = "Security group for ECS instances"
   vpc_id      = aws_vpc.acia_vpc.id
 
-    # SSH disable
-#   ingress {
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"] 
-#   }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
 
   ingress {
     from_port   = 5432
@@ -129,7 +128,6 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_ecs_service" {
   role       = aws_iam_role.ecs_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
-
 
 # IAM Policies
 resource "aws_iam_policy" "ecs_cloudwatch_logs" {
@@ -233,9 +231,27 @@ resource "aws_ecs_service" "my_service" {
   }
 }
 
+# Ami, most recent
+data "aws_ami" "ubuntu_instance" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+
 # EC2 instance
 resource "aws_instance" "ecs_instance" {
-  ami           = "ami-0034d1b24736be0bc" # ca-central-1 (64bits x86)
+  ami = data.aws_ami.ubuntu_instance.id
   instance_type = "t2.micro" 
 
   vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]

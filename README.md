@@ -4,5 +4,5 @@ pgvector extension
 
 ## Dependencies and used services
 - Terraform and Terraform Cloud
-- AWS ECR/ECS
+- AWS ECR/ECS/EC2
 - Docker
