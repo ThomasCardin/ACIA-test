@@ -66,6 +66,13 @@ resource "aws_security_group" "ecs_instance_sg" {
     cidr_blocks = ["0.0.0.0/0"] 
   }
 
+  ingress {
+    from_port = -1
+    to_port = -1
+    protocol = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
   egress {
     from_port   = 0
     to_port     = 0
@@ -79,7 +86,6 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
   name = "ecs/my-app-logs"
   retention_in_days = 14
 }
-
 
 # IAM user
 resource "aws_iam_role" "ecs_execution_role" {

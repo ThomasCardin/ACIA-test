@@ -20,18 +20,28 @@ COPY --from=pgvector-builder /usr/local/share/postgresql/extension /usr/local/sh
 
 COPY init.sql /docker-entrypoint-initdb.d/
 COPY setup_db.sh /docker-entrypoint-initdb.d/
+COPY set_pg_hba.sh /docker-entrypoint-initdb.d/
 
 RUN chmod +x /docker-entrypoint-initdb.d/setup_db.sh
+RUN chmod +x /docker-entrypoint-initdb.d/set_pg_hba.sh
 
 # UTF-8 encoding
 ENV POSTGRES_INITDB_ARGS="--encoding=UTF8"
 
-ENV USER_IALAB_PASSWORD=$USER_IALAB_PASSWORD
+# ENV USER_IALAB_PASSWORD=$USER_IALAB_PASSWORD
 
-ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
-ENV POSTGRES_USER=$POSTGRES_USER
-ENV POSTGRES_HOST=$POSTGRES_HOST
-ENV POSTGRES_DB=$POSTGRES_DB
+# ENV POSTGRES_PASSWORD=$POSTGRES_PASSWORD
+# ENV POSTGRES_USER=$POSTGRES_USER
+# ENV POSTGRES_HOST=$POSTGRES_HOST
+# ENV POSTGRES_DB=$POSTGRES_DB
+# ENV POSTGRES_PORT=5432
+
+ENV USER_IALAB_PASSWORD=salut
+
+ENV POSTGRES_PASSWORD=1234
+ENV POSTGRES_USER=thomas
+ENV POSTGRES_HOST=
+ENV POSTGRES_DB=my_db
 ENV POSTGRES_PORT=5432
 
 EXPOSE 5432
