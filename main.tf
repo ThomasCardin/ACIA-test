@@ -231,34 +231,19 @@ resource "aws_ecs_service" "my_service" {
   }
 }
 
-# Ami, most recent
-data "aws_ami" "ubuntu_instance" {
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = ["099720109477"] # Canonical
-}
-
-
 # EC2 instance
 resource "aws_instance" "ecs_instance" {
-  ami = data.aws_ami.ubuntu_instance.id
-  instance_type = "t2.micro" 
+  ami = "ami-0034d1b24736be0bc" # ECS optimized instance
+  instance_type = "m5.large" 
 
   vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
   subnet_id         = aws_subnet.acia_subnet.id 
   iam_instance_profile   = aws_iam_instance_profile.ecs_instance_profile.name
 
-  user_data = "#!/bin/bash\necho ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config"
+  user_data = <<-EOF
+                #!/bin/bash
+                grep -q 'ECS_CLUSTER=acia-ecs-cluster' /etc/ecs/ecs.config || echo 'ECS_CLUSTER=acia-ecs-cluster' >> /etc/ecs/ecs.config
+              EOF
   tags = {
     Name = "ECS Instance"
   }
