@@ -10,4 +10,4 @@ pgvector extension
 ## Database information
 | **Database** | IP | Port |
 | --- | --- | --- |
-| **Postgres 15.2** | 3.96.65.126 | 5432 |
+| **Postgres 15.2** | --- | --- |
