@@ -52,19 +52,25 @@ resource "aws_security_group" "ecs_instance_sg" {
   description = "Security group for ECS instances"
   vpc_id      = aws_vpc.acia_vpc.id
 
-    # SSH disable
-#   ingress {
-#     from_port   = 22
-#     to_port     = 22
-#     protocol    = "tcp"
-#     cidr_blocks = ["0.0.0.0/0"] 
-#   }
+  ingress {
+    from_port   = 22
+    to_port     = 22
+    protocol    = "tcp"
+    cidr_blocks = ["0.0.0.0/0"] 
+  }
 
   ingress {
     from_port   = 5432
     to_port     = 5432
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"] 
+  }
+
+  ingress {
+    from_port = -1
+    to_port = -1
+    protocol = "icmp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   egress {
@@ -80,7 +86,6 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
   name = "ecs/my-app-logs"
   retention_in_days = 14
 }
-
 
 # IAM user
 resource "aws_iam_role" "ecs_execution_role" {
@@ -129,7 +134,6 @@ resource "aws_iam_role_policy_attachment" "ecs_instance_ecs_service" {
   role       = aws_iam_role.ecs_instance_role.name
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceforEC2Role"
 }
-
 
 # IAM Policies
 resource "aws_iam_policy" "ecs_cloudwatch_logs" {
@@ -235,14 +239,17 @@ resource "aws_ecs_service" "my_service" {
 
 # EC2 instance
 resource "aws_instance" "ecs_instance" {
-  ami           = "ami-0034d1b24736be0bc" # ca-central-1 (64bits x86)
-  instance_type = "t2.micro" 
+  ami = "ami-0034d1b24736be0bc" # ECS optimized instance
+  instance_type = "m5.large" 
 
   vpc_security_group_ids = [aws_security_group.ecs_instance_sg.id]
   subnet_id         = aws_subnet.acia_subnet.id 
   iam_instance_profile   = aws_iam_instance_profile.ecs_instance_profile.name
 
-  user_data = "#!/bin/bash\necho ECS_CLUSTER=acia-ecs-cluster >> /etc/ecs/ecs.config"
+  user_data = <<-EOF
+                #!/bin/bash
+                grep -q 'ECS_CLUSTER=acia-ecs-cluster' /etc/ecs/ecs.config || echo 'ECS_CLUSTER=acia-ecs-cluster' >> /etc/ecs/ecs.config
+              EOF
   tags = {
     Name = "ECS Instance"
   }

@@ -10,7 +10,7 @@ WORKDIR /home/pgvector
 
 RUN make
 
-RUN make install && ls -la /usr/local/share/postgresql/extension/
+RUN make install
 
 FROM postgres:15.2-alpine
 
@@ -20,8 +20,10 @@ COPY --from=pgvector-builder /usr/local/share/postgresql/extension /usr/local/sh
 
 COPY init.sql /docker-entrypoint-initdb.d/
 COPY setup_db.sh /docker-entrypoint-initdb.d/
+COPY set_pg_hba.sh /docker-entrypoint-initdb.d/
 
 RUN chmod +x /docker-entrypoint-initdb.d/setup_db.sh
+RUN chmod +x /docker-entrypoint-initdb.d/set_pg_hba.sh
 
 # UTF-8 encoding
 ENV POSTGRES_INITDB_ARGS="--encoding=UTF8"
